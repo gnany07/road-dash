@@ -69,67 +69,89 @@ class Game {
         window.addEventListener('keydown', (e) => {
             window.soundEngine.ensureContext();
 
-            switch (e.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    this.input.up = true;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    this.input.down = true;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    this.input.left = true;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    this.input.right = true;
-                    break;
-                case 'Space':
-                case 'ShiftLeft':
-                case 'ShiftRight':
-                    this.input.nitro = true;
-                    break;
-                case 'KeyP':
-                case 'Escape':
-                    if (this.state === 'PLAYING') {
-                        this.pauseGame();
-                    } else if (this.state === 'PAUSED') {
-                        this.resumeGame();
+            // Prevent spacebar and arrow keys from scrolling the webpage or clicking buttons
+            if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) || e.key === ' ') {
+                e.preventDefault();
+            }
+
+            // Nitro Boost (SPACEBAR, SHIFT)
+            if (e.code === 'Space' || e.key === ' ' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                this.input.nitro = true;
+            }
+
+            // Steering Left (A, Left Arrow)
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                this.input.left = true;
+            }
+
+            // Steering Right (D, Right Arrow)
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                this.input.right = true;
+            }
+
+            // Gas / Accelerate (W, Up Arrow)
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                this.input.up = true;
+            }
+
+            // Brake / Reverse (S, Down Arrow)
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                this.input.down = true;
+            }
+
+            // Pause / Resume (P, Escape)
+            if (e.code === 'KeyP' || e.code === 'Escape') {
+                if (this.state === 'PLAYING') {
+                    this.pauseGame();
+                } else if (this.state === 'PAUSED') {
+                    this.resumeGame();
+                }
+            }
+
+            // Quick Restart (R)
+            if (e.code === 'KeyR') {
+                if (this.state === 'PLAYING' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
+                    this.restartCurrent();
+                }
+            }
+
+            // Mute / Unmute Toggle shortcut (M)
+            if (e.code === 'KeyM') {
+                const isMuted = !window.soundEngine.muted;
+                window.soundEngine.setMuted(isMuted);
+                this.uiManager.updateAudioIcons();
+            }
+
+            // Enter shortcut for menu confirmation / progression
+            if (e.code === 'Enter') {
+                if (this.state === 'GAME_OVER') {
+                    this.restartCurrent();
+                } else if (this.state === 'VICTORY') {
+                    const nextLvlId = (this.currentLevel ? this.currentLevel.id : 1) + 1;
+                    if (nextLvlId <= this.levelManager.levels.length) {
+                        this.startLevel(nextLvlId);
+                    } else {
+                        this.showLevelSelect();
                     }
-                    break;
-                case 'KeyR':
-                    if (this.state === 'PLAYING' || this.state === 'GAME_OVER' || this.state === 'VICTORY') {
-                        this.restartCurrent();
-                    }
-                    break;
+                }
             }
         });
 
         window.addEventListener('keyup', (e) => {
-            switch (e.code) {
-                case 'ArrowUp':
-                case 'KeyW':
-                    this.input.up = false;
-                    break;
-                case 'ArrowDown':
-                case 'KeyS':
-                    this.input.down = false;
-                    break;
-                case 'ArrowLeft':
-                case 'KeyA':
-                    this.input.left = false;
-                    break;
-                case 'ArrowRight':
-                case 'KeyD':
-                    this.input.right = false;
-                    break;
-                case 'Space':
-                case 'ShiftLeft':
-                case 'ShiftRight':
-                    this.input.nitro = false;
-                    break;
+            if (e.code === 'Space' || e.key === ' ' || e.code === 'ShiftLeft' || e.code === 'ShiftRight') {
+                this.input.nitro = false;
+            }
+            if (e.code === 'ArrowLeft' || e.code === 'KeyA') {
+                this.input.left = false;
+            }
+            if (e.code === 'ArrowRight' || e.code === 'KeyD') {
+                this.input.right = false;
+            }
+            if (e.code === 'ArrowUp' || e.code === 'KeyW') {
+                this.input.up = false;
+            }
+            if (e.code === 'ArrowDown' || e.code === 'KeyS') {
+                this.input.down = false;
             }
         });
 

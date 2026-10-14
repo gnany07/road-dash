@@ -15,6 +15,7 @@ class Player {
     reset() {
         this.position = 0;
         this.x = 0;
+        this.vx = 0; // smoothed lateral velocity
         this.y = 0;
         this.speed = 0;
         this.steerAngle = 0; // -1 to 1 for visual tilt
@@ -30,7 +31,7 @@ class Player {
         this.handling = 3.6;
 
         // Nitro & Overdrive
-        this.nitro = 50;
+        this.nitro = 100; // start with full nitro!
         this.maxNitro = 100;
         this.isBoosting = false;
         this.isBraking = false;
@@ -93,13 +94,17 @@ class Player {
             targetAccel = this.decel;
         }
 
-        // Nitro Boost Trigger
-        if (input.nitro && this.nitro > 0 && !this.isBraking && this.speed > 500) {
+        // Nitro Boost Trigger (SPACE / SHIFT)
+        if (input.nitro && this.nitro > 0 && !this.isBraking) {
             if (!this.isBoosting) {
                 window.soundEngine.playNitro();
+                // Instant launch kick if at low speed
+                if (this.speed < 2000) {
+                    this.speed = Math.max(this.speed, 2600);
+                }
             }
             this.isBoosting = true;
-            this.nitro = Math.max(0, this.nitro - (this.nitroDrainRate || 30) * dt);
+            this.nitro = Math.max(0, this.nitro - (this.nitroDrainRate || 28) * dt);
 
             // Nitro fire particles
             if (particleSystem) {
@@ -108,8 +113,8 @@ class Player {
         } else {
             this.isBoosting = false;
             // Passive slow nitro regen when driving fast
-            if (this.speed > this.maxSpeed * 0.6) {
-                this.nitro = Math.min(this.maxNitro, this.nitro + 6 * dt);
+            if (this.speed > this.maxSpeed * 0.5) {
+                this.nitro = Math.min(this.maxNitro, this.nitro + 7 * dt);
             }
         }
 
@@ -147,7 +152,7 @@ class Player {
             this.topSpeedReached = kmh;
         }
 
-        // 2. Lateral Steering & Banking
+        // 2. Lateral Steering & Banking (Controlled, smooth, non-twitchy)
         const speedRatio = this.speed / this.maxSpeed;
         const currentSegment = roadEngine.findSegment(this.position);
 
@@ -156,7 +161,7 @@ class Player {
         if (input.right) steerIntent += 1;
 
         // Smooth steering angle for 3D chassis tilt
-        this.steerAngle += (steerIntent - this.steerAngle) * Math.min(1, dt * 12);
+        this.steerAngle += (steerIntent - this.steerAngle) * Math.min(1, dt * 10);
 
         // Tire screech when turning hard at high speed
         if (Math.abs(steerIntent) > 0.5 && speedRatio > 0.7 && Math.random() < 0.08) {
@@ -166,21 +171,31 @@ class Player {
             }
         }
 
-        // Lateral position change (responsive, snappy arcade feel)
-        let turnSpeed = this.handling * (0.9 + speedRatio * 0.4);
-        // Extra assist when steering back towards the road from off-road
-        if (isOffroad && Math.sign(steerIntent) !== 0 && Math.sign(steerIntent) !== Math.sign(this.x)) {
-            turnSpeed *= 1.4;
-        }
-        this.x += steerIntent * turnSpeed * dt;
+        // Calibrated arcade lateral speed (~1.1 units/sec max)
+        // A gentle tap changes ~0.08 units; holding changes ~0.35 units per 0.3s (one full lane)
+        const handlingRatio = (this.handling || 3.6) / 3.6;
+        let maxTurnSpeed = handlingRatio * (1.05 + speedRatio * 0.25);
 
-        // Subtle realistic centrifugal curve drift (gentle, easy to counter)
+        // Extra assist if steering back from shoulder to center
+        if (isOffroad && Math.sign(steerIntent) !== 0 && Math.sign(steerIntent) !== Math.sign(this.x)) {
+            maxTurnSpeed *= 1.35;
+        }
+
+        // Smooth velocity interpolation avoids twitchiness and sudden jumping
+        const targetVx = steerIntent * maxTurnSpeed;
+        const steerDamping = (steerIntent !== 0) ? 14 : 18;
+        this.vx += (targetVx - this.vx) * Math.min(1, dt * steerDamping);
+
+        // Apply lateral movement
+        this.x += this.vx * dt;
+
+        // Subtle realistic centrifugal curve drift (very gentle, easily countered)
         if (currentSegment && speedRatio > 0.15) {
-            this.x -= (currentSegment.curve * speedRatio * 0.22 * dt);
+            this.x -= (currentSegment.curve * speedRatio * 0.15 * dt);
         }
 
         // Bounds clamp (safe shoulder)
-        this.x = Math.max(-1.5, Math.min(1.5, this.x));
+        this.x = Math.max(-1.45, Math.min(1.45, this.x));
 
         // 3. Track Elevation & Forward position integration
         this.position += this.speed * dt;
