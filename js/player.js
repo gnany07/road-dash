@@ -358,82 +358,335 @@ class Player {
         // Right tire
         ctx.fillRect(carW * 0.34, carH * 0.05, carW * 0.14, carH * 0.38);
 
-        // 4. Main Rear Body Shell (Aerodynamic sports car tail)
+        // 4. Render Specific Real Supercar Rear Fascia
         const primaryColor = this.overdriveActive ? '#00f3ff' : this.carColor;
-        ctx.fillStyle = primaryColor;
-        ctx.beginPath();
-        ctx.roundRect(-carW * 0.44, -carH * 0.35, carW * 0.88, carH * 0.68, [12, 12, 6, 6]);
-        ctx.fill();
-
-        // Gradient highlight on body
-        const bodyGrad = ctx.createLinearGradient(0, -carH * 0.35, 0, carH * 0.35);
-        bodyGrad.addColorStop(0, 'rgba(255, 255, 255, 0.4)');
-        bodyGrad.addColorStop(0.3, 'rgba(255, 255, 255, 0)');
-        bodyGrad.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
-        ctx.fillStyle = bodyGrad;
-        ctx.fill();
-
-        // 5. Rear Windshield & Roof Cabin
-        ctx.fillStyle = '#0f172a';
-        ctx.beginPath();
-        ctx.moveTo(-carW * 0.3, -carH * 0.35);
-        ctx.lineTo(-carW * 0.24, -carH * 0.72);
-        ctx.lineTo(carW * 0.24, -carH * 0.72);
-        ctx.lineTo(carW * 0.3, -carH * 0.35);
-        ctx.closePath();
-        ctx.fill();
-
-        // Windshield glass reflection
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.35)';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-carW * 0.2, -carH * 0.4);
-        ctx.lineTo(-carW * 0.12, -carH * 0.68);
-        ctx.stroke();
-
-        // 6. GT Racing Spoiler
-        ctx.fillStyle = '#0a0a0f';
-        // Struts
-        ctx.fillRect(-carW * 0.32, -carH * 0.55, carW * 0.05, carH * 0.28);
-        ctx.fillRect(carW * 0.27, -carH * 0.55, carW * 0.05, carH * 0.28);
-        // Wing blade
-        ctx.fillStyle = this.overdriveActive ? '#ffffff' : '#1f2937';
-        ctx.fillRect(-carW * 0.42, -carH * 0.62, carW * 0.84, carH * 0.1);
-
-        // 7. Dynamic LED Tail Lights & Braking Glow
         const tailColor = this.isBraking ? '#ff0033' : '#ff1a1a';
-        ctx.fillStyle = tailColor;
-        ctx.shadowColor = tailColor;
-        ctx.shadowBlur = this.isBraking ? 25 : 12;
 
-        // Dual horizontal cyber tail lamps
-        ctx.fillRect(-carW * 0.38, -carH * 0.12, carW * 0.24, carH * 0.12);
-        ctx.fillRect(carW * 0.14, -carH * 0.12, carW * 0.24, carH * 0.12);
-
-        // Center third brake light
-        if (this.isBraking) {
-            ctx.fillRect(-carW * 0.1, -carH * 0.38, carW * 0.2, carH * 0.06);
+        switch (this.carId) {
+            case 'mustang':
+                this.renderMustangRear(ctx, carW, carH, primaryColor, tailColor);
+                break;
+            case 'gt3rs':
+                this.renderPorscheRear(ctx, carW, carH, primaryColor, tailColor);
+                break;
+            case 'aventador':
+                this.renderAventadorRear(ctx, carW, carH, primaryColor, tailColor);
+                break;
+            case 'chiron':
+                this.renderChironRear(ctx, carW, carH, primaryColor, tailColor);
+                break;
+            case 'skyline':
+            default:
+                this.renderSkylineRear(ctx, carW, carH, primaryColor, tailColor);
+                break;
         }
-        ctx.shadowBlur = 0;
-
-        // 8. Dual Chrome Exhaust Pipes
-        ctx.fillStyle = '#475569';
-        ctx.beginPath();
-        ctx.arc(-carW * 0.25, carH * 0.25, carW * 0.05, 0, Math.PI * 2);
-        ctx.arc(carW * 0.25, carH * 0.25, carW * 0.05, 0, Math.PI * 2);
-        ctx.fill();
 
         // Overdrive / Boost Aura
         if (this.overdriveActive) {
             ctx.strokeStyle = '#00f3ff';
             ctx.shadowColor = '#00f3ff';
-            ctx.shadowBlur = 20;
-            ctx.lineWidth = 3;
+            ctx.shadowBlur = 24;
+            ctx.lineWidth = 4;
             ctx.stroke();
             ctx.shadowBlur = 0;
         }
 
         ctx.restore();
+    }
+
+    // -------------------------------------------------------------
+    // REAL SUPERCAR REAR VISUAL IMPLEMENTATIONS
+    // -------------------------------------------------------------
+
+    // 1. NISSAN SKYLINE GT-R R34 (Quad Round Tail Lamps, Nismo Wing, Left Exhaust)
+    renderSkylineRear(ctx, w, h, bodyColor, tailColor) {
+        // Rear Body
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-w * 0.45, -h * 0.38, w * 0.9, h * 0.72, [8, 8, 4, 4]);
+        ctx.fill();
+
+        // Cabin & Rear Windshield
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.32, -h * 0.38);
+        ctx.lineTo(-w * 0.26, -h * 0.74);
+        ctx.lineTo(w * 0.26, -h * 0.74);
+        ctx.lineTo(w * 0.32, -h * 0.38);
+        ctx.closePath();
+        ctx.fill();
+
+        // GT-R Double-Deck Rear Spoiler
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(-w * 0.36, -h * 0.65, w * 0.05, h * 0.32);
+        ctx.fillRect(w * 0.31, -h * 0.65, w * 0.05, h * 0.32);
+        ctx.fillStyle = this.overdriveActive ? '#00f3ff' : '#0f172a';
+        ctx.fillRect(-w * 0.46, -h * 0.72, w * 0.92, h * 0.1);
+
+        // Quad Round Tail Lamps (Two glowing red circles on each side)
+        ctx.shadowColor = tailColor;
+        ctx.shadowBlur = this.isBraking ? 25 : 12;
+        const outerR = w * 0.055;
+        const innerR = w * 0.045;
+        const lampY = -h * 0.12;
+
+        [-1, 1].forEach(side => {
+            // Outer lamp
+            ctx.fillStyle = tailColor;
+            ctx.beginPath();
+            ctx.arc(side * w * 0.34, lampY, outerR, 0, Math.PI * 2);
+            ctx.fill();
+            // Inner lamp
+            ctx.beginPath();
+            ctx.arc(side * w * 0.22, lampY, innerR, 0, Math.PI * 2);
+            ctx.fill();
+            // Lamp chrome bezel
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+        });
+        ctx.shadowBlur = 0;
+
+        // Trunk GT-R Emblem
+        ctx.fillStyle = '#ffffff';
+        ctx.font = `bold ${Math.round(w * 0.04)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('GT-R', w * 0.08, -h * 0.1);
+
+        // Left Single Large Titanium Exhaust Cannon
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(-w * 0.34, h * 0.26, w * 0.065, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#0284c7'; // titanium heat blue
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // 2. FORD MUSTANG SHELBY GT500 (Vertical Tri-Bar Sequential Lamps, Quad Exhausts, Cobra Badge)
+    renderMustangRear(ctx, w, h, bodyColor, tailColor) {
+        // Muscular Squared Body
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-w * 0.46, -h * 0.36, w * 0.92, h * 0.72, [6, 6, 2, 2]);
+        ctx.fill();
+
+        // Dual Le Mans Racing Stripes running down center
+        ctx.fillStyle = bodyColor === '#f8fafc' ? '#1d4ed8' : '#ffffff';
+        ctx.fillRect(-w * 0.08, -h * 0.72, w * 0.06, h * 1.08);
+        ctx.fillRect(w * 0.02, -h * 0.72, w * 0.06, h * 1.08);
+
+        // Cabin
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.32, -h * 0.36);
+        ctx.lineTo(-w * 0.25, -h * 0.72);
+        ctx.lineTo(w * 0.25, -h * 0.72);
+        ctx.lineTo(w * 0.32, -h * 0.36);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ducktail Spoiler
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-w * 0.44, -h * 0.44, w * 0.88, h * 0.1);
+
+        // Signature Tri-Bar Vertical LED Tail Lights (3 on left, 3 on right)
+        ctx.fillStyle = tailColor;
+        ctx.shadowColor = tailColor;
+        ctx.shadowBlur = this.isBraking ? 25 : 12;
+        [-1, 1].forEach(side => {
+            const baseX = side * w * 0.35;
+            for (let i = 0; i < 3; i++) {
+                const bx = baseX + (side * (i - 1) * w * 0.045);
+                ctx.fillRect(bx - w * 0.015, -h * 0.22, w * 0.03, h * 0.25);
+            }
+        });
+        ctx.shadowBlur = 0;
+
+        // Center Shelby Cobra Medallion
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(0, -h * 0.1, w * 0.05, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#ef4444';
+        ctx.beginPath();
+        ctx.arc(0, -h * 0.1, w * 0.02, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Quad Exhaust Tips (2 on left, 2 on right)
+        ctx.fillStyle = '#475569';
+        [-0.34, -0.25, 0.25, 0.34].forEach(exX => {
+            ctx.beginPath();
+            ctx.arc(w * exX, h * 0.25, w * 0.04, 0, Math.PI * 2);
+            ctx.fill();
+        });
+    }
+
+    // 3. PORSCHE 911 GT3 RS (Continuous Red Laser Lightbar, Swan-Neck Wing, Dual Center Exhaust)
+    renderPorscheRear(ctx, w, h, bodyColor, tailColor) {
+        // Curving Teardrop Rear Hips
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-w * 0.45, -h * 0.38, w * 0.9, h * 0.72, [18, 18, 6, 6]);
+        ctx.fill();
+
+        // Fastback Sloping Rear Windshield & Louvered Decklid
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.3, -h * 0.38);
+        ctx.lineTo(-w * 0.22, -h * 0.76);
+        ctx.lineTo(w * 0.22, -h * 0.76);
+        ctx.lineTo(w * 0.3, -h * 0.38);
+        ctx.closePath();
+        ctx.fill();
+
+        // Swan-Neck Top-Hung Carbon Wing
+        ctx.fillStyle = '#1e293b';
+        // Gooseneck pylons
+        ctx.fillRect(-w * 0.24, -h * 0.72, w * 0.04, h * 0.38);
+        ctx.fillRect(w * 0.2, -h * 0.72, w * 0.04, h * 0.38);
+        // Massive Aerodynamic Blade
+        ctx.fillStyle = this.overdriveActive ? '#00f3ff' : '#090d16';
+        ctx.fillRect(-w * 0.48, -h * 0.76, w * 0.96, h * 0.09);
+        // Endplates
+        ctx.fillStyle = '#ef4444';
+        ctx.fillRect(-w * 0.48, -h * 0.82, w * 0.04, h * 0.18);
+        ctx.fillRect(w * 0.44, -h * 0.82, w * 0.04, h * 0.18);
+
+        // Full-Width Continuous Red LED Laser Lightbar
+        ctx.fillStyle = tailColor;
+        ctx.shadowColor = tailColor;
+        ctx.shadowBlur = this.isBraking ? 25 : 14;
+        ctx.fillRect(-w * 0.4, -h * 0.15, w * 0.8, h * 0.05);
+        ctx.shadowBlur = 0;
+
+        // "PORSCHE" Lettering under lightbar
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = `bold ${Math.round(w * 0.03)}px sans-serif`;
+        ctx.textAlign = 'center';
+        ctx.fillText('P O R S C H E', 0, -h * 0.06);
+
+        // Dual Center Titanium Exhausts
+        ctx.fillStyle = '#334155';
+        ctx.beginPath();
+        ctx.arc(-w * 0.06, h * 0.25, w * 0.045, 0, Math.PI * 2);
+        ctx.arc(w * 0.06, h * 0.25, w * 0.045, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8'; // heat blue
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+    }
+
+    // 4. LAMBORGHINI AVENTADOR SVJ (Y-Shaped LEDs, High Dual Cannons, Extreme Diffuser)
+    renderAventadorRear(ctx, w, h, bodyColor, tailColor) {
+        // Ultra-Wide Angular Stealth Fighter Body
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.48, h * 0.22);
+        ctx.lineTo(-w * 0.44, -h * 0.32);
+        ctx.lineTo(w * 0.44, -h * 0.32);
+        ctx.lineTo(w * 0.48, h * 0.22);
+        ctx.closePath();
+        ctx.fill();
+
+        // Slanted Low-Slung Cabin
+        ctx.fillStyle = '#0f172a';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.32, -h * 0.32);
+        ctx.lineTo(-w * 0.22, -h * 0.65);
+        ctx.lineTo(w * 0.22, -h * 0.65);
+        ctx.lineTo(w * 0.32, -h * 0.32);
+        ctx.closePath();
+        ctx.fill();
+
+        // SVJ ALA 2.0 High-Rise Wing with Central Stabilizer Pylon
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-w * 0.02, -h * 0.65, w * 0.04, h * 0.35); // center pylon
+        ctx.fillRect(-w * 0.28, -h * 0.62, w * 0.04, h * 0.32);
+        ctx.fillRect(w * 0.24, -h * 0.62, w * 0.04, h * 0.32);
+        ctx.fillStyle = this.overdriveActive ? '#00f3ff' : '#000000';
+        ctx.fillRect(-w * 0.48, -h * 0.68, w * 0.96, h * 0.08);
+
+        // Iconic Y-Shaped / Chevron LED Tail Lights
+        ctx.strokeStyle = tailColor;
+        ctx.shadowColor = tailColor;
+        ctx.shadowBlur = this.isBraking ? 25 : 12;
+        ctx.lineWidth = 3;
+        [-1, 1].forEach(side => {
+            const bx = side * w * 0.32;
+            ctx.beginPath();
+            ctx.moveTo(bx + side * w * 0.08, -h * 0.16);
+            ctx.lineTo(bx, -h * 0.1);
+            ctx.lineTo(bx + side * w * 0.08, -h * 0.04);
+            ctx.stroke();
+        });
+        ctx.shadowBlur = 0;
+
+        // High-Mounted Center Dual Exhaust Cannons
+        ctx.fillStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(-w * 0.08, -h * 0.08, w * 0.045, 0, Math.PI * 2);
+        ctx.arc(w * 0.08, -h * 0.08, w * 0.045, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // Extreme Multi-Blade Rear Diffuser
+        ctx.fillStyle = '#0f172a';
+        for (let i = -3; i <= 3; i++) {
+            ctx.fillRect(i * w * 0.08 - w * 0.01, h * 0.15, w * 0.02, h * 0.15);
+        }
+    }
+
+    // 5. BUGATTI CHIRON SUPER SPORT (Monolithic Horizontal Laser Blade, Stacked Quad Exhausts)
+    renderChironRear(ctx, w, h, bodyColor, tailColor) {
+        // Monolithic Wide Hypercar Rear
+        ctx.fillStyle = bodyColor;
+        ctx.beginPath();
+        ctx.roundRect(-w * 0.48, -h * 0.36, w * 0.96, h * 0.72, [14, 14, 4, 4]);
+        ctx.fill();
+
+        // Exposed Carbon Fiber Center Accent
+        ctx.fillStyle = '#090d16';
+        ctx.fillRect(-w * 0.14, -h * 0.72, w * 0.28, h * 1.08);
+
+        // Cabin
+        ctx.fillStyle = '#020617';
+        ctx.beginPath();
+        ctx.moveTo(-w * 0.3, -h * 0.36);
+        ctx.lineTo(-w * 0.22, -h * 0.72);
+        ctx.lineTo(w * 0.22, -h * 0.72);
+        ctx.lineTo(w * 0.3, -h * 0.36);
+        ctx.closePath();
+        ctx.fill();
+
+        // Active Longtail Carbon Wing
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(-w * 0.46, -h * 0.48, w * 0.92, h * 0.1);
+
+        // Famous 1.6-Meter Single Continuous Laser Red LED Blade
+        ctx.fillStyle = tailColor;
+        ctx.shadowColor = tailColor;
+        ctx.shadowBlur = this.isBraking ? 28 : 16;
+        ctx.fillRect(-w * 0.44, -h * 0.18, w * 0.88, h * 0.04);
+        ctx.shadowBlur = 0;
+
+        // Horseshoe Center Arc
+        ctx.strokeStyle = '#38bdf8'; // Bugatti Blue
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(0, h * 0.08, w * 0.1, Math.PI, 0, false);
+        ctx.stroke();
+
+        // Vertically Stacked Dual Twin Exhaust Cannons (2 Left, 2 Right)
+        ctx.fillStyle = '#475569';
+        [-w * 0.35, w * 0.35].forEach(sideX => {
+            ctx.beginPath();
+            ctx.arc(sideX, h * 0.16, w * 0.035, 0, Math.PI * 2);
+            ctx.arc(sideX, h * 0.25, w * 0.035, 0, Math.PI * 2);
+            ctx.fill();
+        });
     }
 }
 

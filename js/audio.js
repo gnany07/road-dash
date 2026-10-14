@@ -279,6 +279,87 @@ class SoundEngine {
         noise.start(now);
     }
 
+    playCarRev(carId = 'skyline') {
+        if (!this.initialized || this.muted) return;
+        this.ensureContext();
+        const now = this.ctx.currentTime;
+
+        const osc = this.ctx.createOscillator();
+        const filter = this.ctx.createBiquadFilter();
+        const gain = this.ctx.createGain();
+
+        let basePitch = 65;
+        let peakPitch = 240;
+        let revTime = 0.8;
+
+        if (carId === 'mustang') {
+            basePitch = 48;
+            peakPitch = 180;
+            osc.type = 'sawtooth';
+        } else if (carId === 'gt3rs') {
+            basePitch = 75;
+            peakPitch = 340;
+            osc.type = 'sawtooth';
+        } else if (carId === 'aventador') {
+            basePitch = 85;
+            peakPitch = 380;
+            osc.type = 'triangle';
+        } else if (carId === 'chiron') {
+            basePitch = 42;
+            peakPitch = 200;
+            osc.type = 'sawtooth';
+        } else {
+            basePitch = 60;
+            peakPitch = 280;
+            osc.type = 'sawtooth';
+        }
+
+        osc.frequency.setValueAtTime(basePitch, now);
+        osc.frequency.exponentialRampToValueAtTime(peakPitch, now + 0.35);
+        osc.frequency.exponentialRampToValueAtTime(basePitch * 1.1, now + revTime);
+
+        filter.type = 'lowpass';
+        filter.frequency.setValueAtTime(280, now);
+        filter.frequency.exponentialRampToValueAtTime(2200, now + 0.35);
+        filter.frequency.exponentialRampToValueAtTime(320, now + revTime);
+        filter.Q.setValueAtTime(4.0, now);
+
+        gain.gain.setValueAtTime(0.32, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + revTime + 0.1);
+
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(this.sfxGain);
+
+        osc.start(now);
+        osc.stop(now + revTime + 0.1);
+
+        // Turbo blow-off valve hiss for turbo models
+        if (carId === 'skyline' || carId === 'chiron') {
+            setTimeout(() => {
+                if (!this.ctx) return;
+                const hNow = this.ctx.currentTime;
+                const bSize = this.ctx.sampleRate * 0.25;
+                const buf = this.ctx.createBuffer(1, bSize, this.ctx.sampleRate);
+                const bData = buf.getChannelData(0);
+                for (let i = 0; i < bSize; i++) {
+                    bData[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.08));
+                }
+                const nSrc = this.ctx.createBufferSource();
+                nSrc.buffer = buf;
+                const nFilt = this.ctx.createBiquadFilter();
+                nFilt.type = 'bandpass';
+                nFilt.frequency.setValueAtTime(2000, hNow);
+                const nG = this.ctx.createGain();
+                nG.gain.setValueAtTime(0.18, hNow);
+                nSrc.connect(nFilt);
+                nFilt.connect(nG);
+                nG.connect(this.sfxGain);
+                nSrc.start(hNow);
+            }, 360);
+        }
+    }
+
     playNearMiss(combo = 1) {
         if (!this.initialized || this.muted) return;
         const now = this.ctx.currentTime;

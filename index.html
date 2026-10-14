@@ -184,23 +184,71 @@
             <div id="garage-car-tabs" class="garage-car-tabs"></div>
 
             <div class="garage-grid">
-                <!-- 3D Rotating Preview -->
+                <!-- 3D Rotating Preview & Showroom -->
                 <div class="garage-preview-panel">
-                    <canvas id="garage-preview-canvas" width="400" height="220"></canvas>
-                    <div style="margin-top: 12px; font-size: 12px; color: var(--neon-cyan); letter-spacing: 2px; font-weight: 700;">
-                        360° LIVE VEHICLE PREVIEW
+                    <!-- Camera View Angle Controls -->
+                    <div class="garage-cam-controls">
+                        <button id="btn-cam-showcase" class="cam-btn active" title="360° Orbit View">📸 360° ORBIT</button>
+                        <button id="btn-cam-rear" class="cam-btn" title="Rear Track View">🏁 REAR CHASE</button>
+                        <button id="btn-cam-front" class="cam-btn" title="Front Hero View">🏎️ FRONT HERO</button>
+                    </div>
+
+                    <div class="canvas-wrap">
+                        <canvas id="garage-preview-canvas" width="480" height="280"></canvas>
+                        <div class="garage-drag-hint">🖱️ DRAG TO ROTATE 360°</div>
+                    </div>
+
+                    <!-- Interactive Rev Engine Button -->
+                    <div class="garage-sound-action">
+                        <button id="btn-garage-rev" class="btn-rev" title="Rev Engine Sound">
+                            <span class="rev-icon">🔊</span>
+                            <div class="rev-info">
+                                <span class="rev-text">REV ENGINE</span>
+                                <span class="rev-sub" id="garage-rev-engine-label">TWIN-TURBO RB26</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <!-- Factory Specifications Dossier -->
+                    <div class="garage-specs-dossier">
+                        <div class="dossier-header">
+                            <span>FACTORY SPECIFICATIONS</span>
+                            <span id="garage-spec-badge" class="spec-badge">V-SPEC II</span>
+                        </div>
+                        <div class="specs-grid">
+                            <div class="spec-cell">
+                                <span class="spec-label">POWERTRAIN</span>
+                                <span id="garage-spec-engine" class="spec-val">2.6L Twin-Turbo</span>
+                            </div>
+                            <div class="spec-cell">
+                                <span class="spec-label">HORSEPOWER</span>
+                                <span id="garage-spec-hp" class="spec-val">450 HP</span>
+                            </div>
+                            <div class="spec-cell">
+                                <span class="spec-label">0 - 60 MPH</span>
+                                <span id="garage-spec-zero-sixty" class="spec-val">3.8s</span>
+                            </div>
+                            <div class="spec-cell">
+                                <span class="spec-label">TOP SPEED</span>
+                                <span id="garage-spec-top-speed" class="spec-val">280 km/h</span>
+                            </div>
+                            <div class="spec-cell full-width">
+                                <span class="spec-label">DRIVETRAIN</span>
+                                <span id="garage-spec-drivetrain" class="spec-val">ATTESA E-TS AWD</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Upgrades & Customization -->
                 <div class="garage-details-panel">
                     <div>
-                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                            <h2 id="garage-car-name" style="font-family: var(--font-heading); font-size: 28px;">Apex Striker</h2>
-                            <span id="garage-car-class" style="font-size: 12px; color: var(--neon-cyan); font-weight: 800;">Street Tuner</span>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px;">
+                            <h2 id="garage-car-name" style="font-family: var(--font-heading); font-size: 26px;">Nissan Skyline GT-R R34</h2>
+                            <span id="garage-car-class" style="font-size: 12px; color: var(--neon-cyan); font-weight: 800; background: rgba(0,243,255,0.12); padding: 4px 10px; border-radius: 12px; border: 1px solid var(--neon-cyan);">Japanese Icon</span>
                         </div>
-                        <p id="garage-car-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
-                            The quintessential balanced highway racer.
+                        <p id="garage-car-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 6px; line-height: 1.4;">
+                            The legendary "Godzilla". Famous for its quad round tail lights, all-wheel-drive grip, and bulletproof twin-turbo RB26.
                         </p>
                     </div>
 
