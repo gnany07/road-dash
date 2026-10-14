@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ROAD DASH: OVERDRIVE - High-Octane Highway Arcade</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏎️</text></svg>">
+</head>
+<body>
+
+    <!-- Main Game Canvas -->
+    <canvas id="game-canvas"></canvas>
+
+    <!-- Heads-Up Display (HUD) -->
+    <div id="game-hud" class="hidden">
+        <!-- Top Status Bar -->
+        <div class="hud-top-bar">
+            <!-- Score & Cash -->
+            <div class="hud-stat-box">
+                <div>
+                    <div class="hud-label">SCORE</div>
+                    <div id="hud-score" class="hud-value">0</div>
+                </div>
+                <div style="border-left: 1px solid rgba(255,255,255,0.15); padding-left: 14px;">
+                    <div class="hud-label">COINS</div>
+                    <div id="hud-coins" class="hud-value hud-coins-val">0</div>
+                </div>
+            </div>
+
+            <!-- Track Progress Bar & Timer -->
+            <div class="hud-center-progress">
+                <div id="hud-timer" class="hud-timer-badge">01:00</div>
+                <div class="hud-progress-track">
+                    <div id="hud-progress-marker"></div>
+                    <span class="hud-finish-flag">🏁</span>
+                </div>
+            </div>
+
+            <!-- Sound & Pause Actions -->
+            <div class="hud-top-right">
+                <button id="music-toggle" class="hud-icon-btn" title="Toggle Sound">🔊</button>
+                <button id="hud-pause-btn" class="hud-icon-btn" title="Pause Game">⏸</button>
+            </div>
+        </div>
+
+        <!-- Floating Near-Miss Combo Popup -->
+        <div id="hud-combo-badge" class="hud-combo-popup hidden">
+            <span class="combo-text">CLOSE CALL</span>
+            <span id="hud-combo-value" class="combo-num">x2</span>
+        </div>
+
+        <!-- Bottom Gauges & Speedometer -->
+        <div class="hud-bottom-bar">
+            <!-- Speedometer Cluster -->
+            <div class="hud-speedometer-cluster">
+                <div class="speedometer-arc"></div>
+                <div id="hud-speed-needle" class="speedometer-needle"></div>
+                <div class="speedometer-readout">
+                    <span id="hud-speed-value" class="speed-number">0</span>
+                    <span class="speed-unit">KM/H</span>
+                </div>
+            </div>
+
+            <!-- Boost, Overdrive & Health Gauges -->
+            <div class="hud-gauges-cluster">
+                <!-- Nitro -->
+                <div class="gauge-row">
+                    <div class="gauge-header">
+                        <span>NITRO BOOST</span>
+                        <span>[SPACE]</span>
+                    </div>
+                    <div class="gauge-bar-track">
+                        <div id="hud-nitro-bar" class="gauge-bar-fill nitro-fill" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <!-- Overdrive God Mode -->
+                <div class="gauge-row">
+                    <div class="gauge-header">
+                        <span>OVERDRIVE CHARGE</span>
+                        <span>COMBO</span>
+                    </div>
+                    <div class="gauge-bar-track">
+                        <div id="hud-overdrive-bar" class="gauge-bar-fill overdrive-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+
+                <!-- Health / Shield -->
+                <div class="gauge-row">
+                    <div class="gauge-header">
+                        <span>HULL INTEGRITY</span>
+                        <span>ARMOR</span>
+                    </div>
+                    <div class="gauge-bar-track">
+                        <div id="hud-health-bar" class="gauge-bar-fill health-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Touch Controls Overlay (visible on touchscreens/narrow displays) -->
+    <div id="mobile-touch-overlay">
+        <div class="touch-cluster">
+            <button id="touch-left" class="touch-btn" aria-label="Steer Left">◀</button>
+            <button id="touch-right" class="touch-btn" aria-label="Steer Right">▶</button>
+        </div>
+        <div class="touch-cluster">
+            <button id="touch-brake" class="touch-btn" aria-label="Brake / Handbrake">🛑</button>
+            <button id="touch-nitro" class="touch-btn nitro-touch" aria-label="Nitro Boost">⚡</button>
+        </div>
+    </div>
+
+    <!-- SCREEN: MAIN MENU -->
+    <div id="screen-main-menu" class="screen-overlay">
+        <div class="screen-header">
+            <h1 class="game-logo">ROAD DASH</h1>
+            <p class="game-tagline">⚡ OVERDRIVE VELOCITY ⚡</p>
+        </div>
+
+        <div class="menu-actions-stack">
+            <button id="btn-play-campaign" class="btn btn-primary">
+                <span>🏁</span> PLAY CAMPAIGN
+            </button>
+            <button id="btn-play-endless" class="btn btn-secondary">
+                <span>♾️</span> ENDLESS HIGHWAY
+            </button>
+            <button id="btn-open-garage" class="btn btn-secondary">
+                <span>🏎️</span> GARAGE & CARS
+            </button>
+            <button id="btn-open-settings" class="btn btn-secondary">
+                <span>⚙️</span> CONTROLS & AUDIO
+            </button>
+        </div>
+
+        <div style="margin-top: 32px; font-size: 13px; color: var(--text-muted); text-align: center;">
+            Controls: <span class="key-badge">A / D</span> or <span class="key-badge">◀ / ▶</span> to Steer • <span class="key-badge">SPACE</span> for Nitro • <span class="key-badge">S / ▼</span> to Brake
+        </div>
+    </div>
+
+    <!-- SCREEN: LEVEL SELECT -->
+    <div id="screen-level-select" class="screen-overlay hidden">
+        <div class="level-select-container">
+            <div class="level-top-bar">
+                <button id="btn-level-back" class="btn btn-secondary" style="padding: 8px 18px; font-size: 14px;">
+                    ◀ MAIN MENU
+                </button>
+                <div style="text-align: right;">
+                    <div style="font-size: 12px; color: var(--text-muted); font-weight: 800;">CAMPAIGN PROGRESS</div>
+                    <div id="level-select-total-stars" style="font-family: var(--font-heading); font-size: 24px; color: var(--neon-gold);">
+                        0 / 15 ★
+                    </div>
+                </div>
+            </div>
+
+            <div class="screen-header" style="margin-bottom: 8px;">
+                <h2 style="font-family: var(--font-heading); font-size: 34px; letter-spacing: 2px;">SELECT HIGHWAY STAGE</h2>
+                <p style="font-size: 13px; color: var(--text-muted);">Earn stars to unlock stages and earn cash for high-speed garage upgrades!</p>
+            </div>
+
+            <!-- Dynamic Level Cards Grid -->
+            <div id="level-grid" class="level-grid"></div>
+        </div>
+    </div>
+
+    <!-- SCREEN: GARAGE & VEHICLE CUSTOMIZATION -->
+    <div id="screen-garage" class="screen-overlay hidden">
+        <div class="garage-container">
+            <div class="level-top-bar">
+                <button id="btn-garage-back" class="btn btn-secondary" style="padding: 8px 18px; font-size: 14px;">
+                    ◀ MAIN MENU
+                </button>
+                <div>
+                    <span style="font-size: 12px; color: var(--text-muted); font-weight: 800;">BANK BALANCE:</span>
+                    <span id="garage-cash-display" style="font-family: var(--font-heading); font-size: 26px; color: var(--neon-gold); margin-left: 8px;">
+                        $0
+                    </span>
+                </div>
+            </div>
+
+            <!-- Car Selection Tabs -->
+            <div id="garage-car-tabs" class="garage-car-tabs"></div>
+
+            <div class="garage-grid">
+                <!-- 3D Rotating Preview -->
+                <div class="garage-preview-panel">
+                    <canvas id="garage-preview-canvas" width="400" height="220"></canvas>
+                    <div style="margin-top: 12px; font-size: 12px; color: var(--neon-cyan); letter-spacing: 2px; font-weight: 700;">
+                        360° LIVE VEHICLE PREVIEW
+                    </div>
+                </div>
+
+                <!-- Upgrades & Customization -->
+                <div class="garage-details-panel">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: baseline;">
+                            <h2 id="garage-car-name" style="font-family: var(--font-heading); font-size: 28px;">Apex Striker</h2>
+                            <span id="garage-car-class" style="font-size: 12px; color: var(--neon-cyan); font-weight: 800;">Street Tuner</span>
+                        </div>
+                        <p id="garage-car-desc" style="font-size: 13px; color: var(--text-muted); margin-top: 4px;">
+                            The quintessential balanced highway racer.
+                        </p>
+                    </div>
+
+                    <!-- Performance Upgrades -->
+                    <div class="upgrade-list">
+                        <div class="upgrade-row">
+                            <span class="upgrade-stat-name">TOP SPEED</span>
+                            <div class="upgrade-stat-track"><div id="stat-bar-speed" class="upgrade-stat-fill" style="width: 20%;"></div></div>
+                            <button id="btn-upgrade-speed" class="upgrade-btn">+$350</button>
+                        </div>
+                        <div class="upgrade-row">
+                            <span class="upgrade-stat-name">ACCELERATION</span>
+                            <div class="upgrade-stat-track"><div id="stat-bar-accel" class="upgrade-stat-fill" style="width: 20%;"></div></div>
+                            <button id="btn-upgrade-accel" class="upgrade-btn">+$350</button>
+                        </div>
+                        <div class="upgrade-row">
+                            <span class="upgrade-stat-name">HANDLING</span>
+                            <div class="upgrade-stat-track"><div id="stat-bar-handling" class="upgrade-stat-fill" style="width: 20%;"></div></div>
+                            <button id="btn-upgrade-handling" class="upgrade-btn">+$350</button>
+                        </div>
+                        <div class="upgrade-row">
+                            <span class="upgrade-stat-name">ARMOR HULL</span>
+                            <div class="upgrade-stat-track"><div id="stat-bar-health" class="upgrade-stat-fill" style="width: 20%;"></div></div>
+                            <button id="btn-upgrade-health" class="upgrade-btn">+$350</button>
+                        </div>
+                    </div>
+
+                    <!-- Paint Palette -->
+                    <div class="palette-row">
+                        <span class="palette-label">PAINT COLOR</span>
+                        <div id="paint-palette" class="palette-swatches"></div>
+                    </div>
+
+                    <!-- Underglow Palette -->
+                    <div class="palette-row">
+                        <span class="palette-label">UNDERGLOW</span>
+                        <div id="underglow-palette" class="palette-swatches"></div>
+                    </div>
+
+                    <!-- Equip / Buy Button -->
+                    <button id="garage-action-btn" class="btn btn-primary" style="margin-top: 8px;">
+                        SELECT CAR
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: PAUSE MODAL -->
+    <div id="screen-pause" class="screen-overlay hidden">
+        <div class="modal-card">
+            <h2 class="modal-title" style="color: var(--neon-cyan);">GAME PAUSED</h2>
+            <div class="menu-actions-stack">
+                <button id="btn-pause-resume" class="btn btn-primary">RESUME RACE</button>
+                <button id="btn-pause-restart" class="btn btn-secondary">RESTART [R]</button>
+                <button id="btn-pause-quit" class="btn btn-danger">QUIT TO MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: GAME OVER MODAL -->
+    <div id="screen-game-over" class="screen-overlay hidden">
+        <div class="modal-card">
+            <h2 id="game-over-reason" class="modal-title gameover-title">VEHICLE DESTROYED!</h2>
+            <div id="game-over-score" style="font-size: 20px; font-weight: 800; color: #ffffff;">FINAL SCORE: 0</div>
+            <p style="font-size: 13px; color: var(--text-muted);">Don't give up! Upgrade your car armor or weave through traffic with better timing.</p>
+            <div class="menu-actions-stack" style="margin-top: 10px;">
+                <button id="btn-gameover-restart" class="btn btn-primary">TRY AGAIN [R]</button>
+                <button id="btn-gameover-menu" class="btn btn-secondary">MAIN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: VICTORY / STAGE COMPLETE MODAL -->
+    <div id="screen-victory" class="screen-overlay hidden">
+        <div class="modal-card">
+            <h2 class="modal-title victory-title">STAGE COMPLETE!</h2>
+            <div id="victory-stars-container" class="victory-stars"></div>
+            <div id="victory-cash-reward" class="victory-reward">+$250</div>
+            <div id="victory-objectives-list" class="objectives-checklist"></div>
+            <div class="menu-actions-stack" style="margin-top: 12px;">
+                <button id="btn-victory-next" class="btn btn-primary">NEXT STAGE ➔</button>
+                <button id="btn-victory-menu" class="btn btn-secondary">CAMPAIGN MENU</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCREEN: SETTINGS & CONTROLS -->
+    <div id="screen-settings" class="screen-overlay hidden">
+        <div class="modal-card" style="width: 520px;">
+            <h2 class="modal-title" style="color: var(--neon-cyan); font-size: 32px;">SETTINGS & CONTROLS</h2>
+            
+            <div class="settings-list">
+                <div class="setting-item">
+                    <span class="setting-label">Sound Effects (SFX)</span>
+                    <input type="range" id="sfx-slider" class="slider-input" min="0" max="1" step="0.05" value="0.8">
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Synthwave Music</span>
+                    <input type="range" id="music-slider" class="slider-input" min="0" max="1" step="0.05" value="0.5">
+                </div>
+            </div>
+
+            <div class="key-ref-box">
+                <div style="font-weight: 800; color: #ffffff; margin-bottom: 6px;">KEYBOARD CONTROLS:</div>
+                <div>• <span class="key-badge">A</span> / <span class="key-badge">◀</span> : Steer Left</div>
+                <div>• <span class="key-badge">D</span> / <span class="key-badge">▶</span> : Steer Right</div>
+                <div>• <span class="key-badge">SPACE</span> / <span class="key-badge">SHIFT</span> : Fire Nitro Boost</div>
+                <div>• <span class="key-badge">S</span> / <span class="key-badge">▼</span> : Brake / Handbrake</div>
+                <div>• <span class="key-badge">P</span> / <span class="key-badge">ESC</span> : Pause Game</div>
+                <div>• <span class="key-badge">R</span> : Quick Restart</div>
+            </div>
+
+            <button id="btn-settings-back" class="btn btn-primary" style="margin-top: 12px; width: 100%;">
+                SAVE & RETURN
+            </button>
+        </div>
+    </div>
+
+    <!-- Game Engine Scripts (Ordered Dependencies) -->
+    <script src="js/audio.js"></script>
+    <script src="js/road.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/traffic.js"></script>
+    <script src="js/particles.js"></script>
+    <script src="js/levels.js"></script>
+    <script src="js/garage.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/game.js"></script>
+</body>
+</html>
