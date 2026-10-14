@@ -229,11 +229,16 @@ class UIManager {
         const kmh = Math.round((player.speed / 12000) * 260);
         if (this.hudSpeedValue) {
             this.hudSpeedValue.textContent = kmh;
+            if (player.isBoosting || player.overdriveActive) {
+                this.hudSpeedValue.classList.add('boosting');
+            } else {
+                this.hudSpeedValue.classList.remove('boosting');
+            }
         }
 
         if (this.hudSpeedNeedle) {
             // -120deg to +120deg
-            const angle = -120 + (Math.min(kmh, 320) / 320) * 240;
+            const angle = -120 + (Math.min(kmh, 340) / 340) * 240;
             this.hudSpeedNeedle.style.transform = `rotate(${angle}deg)`;
         }
 

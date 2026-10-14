@@ -62,22 +62,24 @@ class ParticleSystem {
     emitNitroFlames(player) {
         if (this.particles.length > this.maxParticles) return;
         const colors = player.overdriveActive
-            ? ['#00f3ff', '#ffffff', '#38bdf8']
-            : ['#3b82f6', '#06b6d4', '#f43f5e', '#ffffff'];
+            ? ['#00f3ff', '#ffffff', '#38bdf8', '#e0f2fe']
+            : ['#00f3ff', '#38bdf8', '#f43f5e', '#fbbf24', '#ffffff'];
 
-        for (let i = 0; i < 3; i++) {
+        const numParticles = player.overdriveActive ? 6 : 4;
+        for (let i = 0; i < numParticles; i++) {
             const side = (i % 2 === 0) ? -1 : 1;
+            const tiltOffset = (player.steerAngle || 0) * 0.02;
             this.particles.push({
-                x: 0.5 + (side * 0.045), // relative screen coords around car exhaust
-                y: 0.88,
-                vx: (Math.random() - 0.5) * 0.08,
-                vy: Math.random() * 0.35 + 0.4, // shoot downward
-                size: Math.random() * 9 + 6,
-                sizeGrowth: 15,
+                x: 0.5 + (side * (0.035 + Math.random() * 0.025)) + tiltOffset,
+                y: 0.86 + Math.random() * 0.04,
+                vx: (Math.random() - 0.5) * 0.12 - ((player.steerAngle || 0) * 0.1),
+                vy: Math.random() * 0.45 + 0.55, // fast downward trail
+                size: Math.random() * 10 + 6,
+                sizeGrowth: 18,
                 color: colors[Math.floor(Math.random() * colors.length)],
-                life: 0.22,
-                maxLife: 0.22,
-                alpha: 0.85
+                life: 0.28,
+                maxLife: 0.28,
+                alpha: 0.95
             });
         }
     }
@@ -194,20 +196,23 @@ class ParticleSystem {
 
         // 1. Render Speed Lines when going fast or boosting
         const speedRatio = player.speed / player.maxSpeed;
-        if (speedRatio > 0.75 || player.isBoosting || player.overdriveActive) {
-            const intensity = player.overdriveActive ? 1.0 : (player.isBoosting ? 0.8 : (speedRatio - 0.75) * 3.5);
-            ctx.strokeStyle = player.overdriveActive ? 'rgba(0, 243, 255, 0.6)' : 'rgba(255, 255, 255, 0.4)';
-            ctx.lineWidth = player.overdriveActive ? 2.5 : 1.5;
+        if (speedRatio > 0.65 || player.isBoosting || player.overdriveActive) {
+            const isNitro = player.isBoosting || player.overdriveActive;
+            const intensity = player.overdriveActive ? 1.0 : (player.isBoosting ? 0.95 : (speedRatio - 0.65) * 2.8);
+            ctx.strokeStyle = player.overdriveActive
+                ? 'rgba(0, 243, 255, 0.85)'
+                : (player.isBoosting ? 'rgba(0, 243, 255, 0.7)' : 'rgba(255, 255, 255, 0.35)');
+            ctx.lineWidth = isNitro ? 2.4 : 1.2;
 
             const cx = width / 2;
             const cy = height * 0.48;
 
             this.speedLines.forEach(line => {
-                line.y = (line.y + line.speed * (0.02 + intensity * 0.05)) % 1;
+                line.y = (line.y + line.speed * (0.025 + intensity * 0.06)) % 1;
                 // Radiate outward from horizon vanishing point
                 const angle = line.x * Math.PI * 2;
-                const dist1 = 120 + line.y * (width * 0.7);
-                const dist2 = dist1 + line.len * 220;
+                const dist1 = 90 + line.y * (width * 0.75);
+                const dist2 = dist1 + line.len * (isNitro ? 320 : 220);
 
                 const x1 = cx + Math.cos(angle) * dist1;
                 const y1 = cy + Math.sin(angle) * dist1 * 0.6;

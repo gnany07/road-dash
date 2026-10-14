@@ -304,6 +304,18 @@ html, body {
     line-height: 1;
     color: #ffffff;
     text-shadow: 0 0 15px var(--neon-cyan);
+    transition: color 0.15s, text-shadow 0.15s;
+}
+
+.speed-number.boosting {
+    color: #00f3ff;
+    text-shadow: 0 0 20px #00f3ff, 0 0 35px var(--neon-pink);
+    animation: speedPulse 0.15s infinite alternate;
+}
+
+@keyframes speedPulse {
+    from { transform: scale(1); }
+    to { transform: scale(1.06); }
 }
 
 .speed-unit {

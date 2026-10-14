@@ -472,9 +472,12 @@ class Game {
         // Controllable throttle logic:
         // - Holding Up/W/Gas provides full acceleration
         // - Holding Down/S applies strong braking
+        // - Nitro automatically pins the throttle and provides explosive rocket thrust
         // - Releasing all inputs smoothly cruises at ~80 km/h for easy maneuvering
         const effectiveInput = Object.assign({}, this.input);
-        if (!effectiveInput.down && !effectiveInput.up && !effectiveInput.nitro) {
+        if (effectiveInput.nitro && this.player.nitro > 0 && !effectiveInput.down) {
+            effectiveInput.up = true;
+        } else if (!effectiveInput.down && !effectiveInput.up) {
             if (this.player.speed < 3600) {
                 effectiveInput.up = true;
             }
@@ -532,17 +535,28 @@ class Game {
         const currentSegment = this.roadEngine.findSegment(this.player.position);
         const curve = currentSegment ? currentSegment.curve : 0;
 
+        ctx.save();
+
+        // Screen Shake during Nitro or Overdrive
+        if (this.player.isBoosting || this.player.overdriveActive) {
+            const shake = (this.player.isBoosting ? 2.5 : 0) + (this.player.overdriveActive ? 4.5 : 0);
+            ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+        }
+
         // 1. Background sky, sun, and parallax skyline
         this.roadEngine.renderBackground(ctx, w, h, curve, speedRatio);
 
-        // 2. Projected 2.5D road polygons, roadside scenery, coins, traffic
-        this.roadEngine.renderRoad(ctx, w, h, this.player, window.ROAD_CONSTANTS.CAMERA_DEPTH);
+        // 2. Projected 2.5D road polygons with dynamic camera depth FOV kickback when boosting
+        const cameraDepth = this.player.isBoosting ? 0.72 : window.ROAD_CONSTANTS.CAMERA_DEPTH;
+        this.roadEngine.renderRoad(ctx, w, h, this.player, cameraDepth);
 
         // 3. Player Car
         this.player.render(ctx, w, h);
 
         // 4. Particle juice (nitro flames, speed lines, sparks, weather, combo text)
         this.particleSystem.render(ctx, w, h, this.player, this.roadEngine.weather);
+
+        ctx.restore();
     }
 
     renderMenuAttractBackground(dt) {

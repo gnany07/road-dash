@@ -77,46 +77,48 @@ class Player {
     update(dt, input, roadEngine, trafficManager, particleSystem) {
         this.animationFrame++;
 
-        // 1. Acceleration / Braking
+        // 1. Acceleration / Braking & Explosive Nitro
         let targetAccel = 0;
         this.isBraking = false;
 
-        const effectiveMaxSpeed = this.overdriveActive
-            ? this.maxSpeed * 1.5
-            : (this.isBoosting ? this.maxSpeed * 1.35 : this.maxSpeed);
+        // Nitro Boost Trigger (SPACE / SHIFT / Touch Nitro)
+        const wantsNitro = Boolean(input.nitro) && this.nitro > 0 && !input.down;
 
-        if (input.up) {
-            targetAccel = this.accel;
-        } else if (input.down) {
-            targetAccel = this.braking;
-            this.isBraking = true;
-        } else {
-            targetAccel = this.decel;
-        }
-
-        // Nitro Boost Trigger (SPACE / SHIFT)
-        if (input.nitro && this.nitro > 0 && !this.isBraking) {
+        if (wantsNitro) {
             if (!this.isBoosting) {
                 window.soundEngine.playNitro();
-                // Instant launch kick if at low speed
-                if (this.speed < 2000) {
-                    this.speed = Math.max(this.speed, 2600);
-                }
+                // Instant launch kick: immediate massive forward jolt!
+                this.speed = Math.max(this.speed + 1800, this.maxSpeed * 0.72);
             }
             this.isBoosting = true;
-            this.nitro = Math.max(0, this.nitro - (this.nitroDrainRate || 28) * dt);
+            this.nitro = Math.max(0, this.nitro - (this.nitroDrainRate || 26) * dt);
 
-            // Nitro fire particles
+            // Explosive rocket thrust overrides normal accel!
+            targetAccel = (this.accel * 2.5) + 9500;
+
             if (particleSystem) {
                 particleSystem.emitNitroFlames(this);
             }
         } else {
             this.isBoosting = false;
+            if (input.up) {
+                targetAccel = this.accel;
+            } else if (input.down) {
+                targetAccel = this.braking;
+                this.isBraking = true;
+            } else {
+                targetAccel = this.decel;
+            }
+
             // Passive slow nitro regen when driving fast
             if (this.speed > this.maxSpeed * 0.5) {
                 this.nitro = Math.min(this.maxNitro, this.nitro + 7 * dt);
             }
         }
+
+        const effectiveMaxSpeed = this.overdriveActive
+            ? this.maxSpeed * 1.5
+            : (this.isBoosting ? this.maxSpeed * 1.35 : this.maxSpeed);
 
         // Overdrive Activation
         if (this.overdriveMeter >= 100 && !this.overdriveActive) {
@@ -379,6 +381,11 @@ class Player {
             default:
                 this.renderSkylineRear(ctx, carW, carH, primaryColor, tailColor);
                 break;
+        }
+
+        // 5. Blazing Nitro Exhaust Jet Flames
+        if (this.isBoosting || this.overdriveActive) {
+            this.renderExhaustFlames(ctx, carW, carH);
         }
 
         // Overdrive / Boost Aura
@@ -687,6 +694,96 @@ class Player {
             ctx.arc(sideX, h * 0.25, w * 0.035, 0, Math.PI * 2);
             ctx.fill();
         });
+    }
+
+    // -------------------------------------------------------------
+    // DYNAMIC NITRO EXHAUST JET FLAMES
+    // -------------------------------------------------------------
+    renderExhaustFlames(ctx, w, h) {
+        if (!this.isBoosting && !this.overdriveActive) return;
+
+        let pipes = [];
+        switch (this.carId) {
+            case 'mustang':
+                pipes = [
+                    { x: -w * 0.34, y: h * 0.25, r: w * 0.04 },
+                    { x: -w * 0.25, y: h * 0.25, r: w * 0.04 },
+                    { x: w * 0.25, y: h * 0.25, r: w * 0.04 },
+                    { x: w * 0.34, y: h * 0.25, r: w * 0.04 }
+                ];
+                break;
+            case 'gt3rs':
+                pipes = [
+                    { x: -w * 0.06, y: h * 0.25, r: w * 0.045 },
+                    { x: w * 0.06, y: h * 0.25, r: w * 0.045 }
+                ];
+                break;
+            case 'aventador':
+                pipes = [
+                    { x: -w * 0.08, y: -h * 0.08, r: w * 0.045 },
+                    { x: w * 0.08, y: -h * 0.08, r: w * 0.045 }
+                ];
+                break;
+            case 'chiron':
+                pipes = [
+                    { x: -w * 0.35, y: h * 0.16, r: w * 0.035 },
+                    { x: -w * 0.35, y: h * 0.25, r: w * 0.035 },
+                    { x: w * 0.35, y: h * 0.16, r: w * 0.035 },
+                    { x: w * 0.35, y: h * 0.25, r: w * 0.035 }
+                ];
+                break;
+            case 'skyline':
+            default:
+                pipes = [
+                    { x: -w * 0.34, y: h * 0.26, r: w * 0.065 }
+                ];
+                break;
+        }
+
+        ctx.save();
+        const isOverdrive = this.overdriveActive;
+        const flameColor1 = isOverdrive ? '#00f3ff' : '#00d4ff';
+        const flameColor2 = isOverdrive ? '#ff007f' : '#ff3366';
+
+        pipes.forEach(p => {
+            const flicker = 0.75 + Math.random() * 0.55;
+            const flameLen = h * 0.85 * flicker * (isOverdrive ? 1.45 : 1.0);
+            const flameW = p.r * 1.9;
+
+            // Outer Bloom Flare
+            ctx.shadowColor = isOverdrive ? '#00f3ff' : '#ff0055';
+            ctx.shadowBlur = 24;
+
+            // Outer flame cone
+            const gradOuter = ctx.createLinearGradient(p.x, p.y, p.x, p.y + flameLen);
+            gradOuter.addColorStop(0, flameColor1);
+            gradOuter.addColorStop(0.5, flameColor2);
+            gradOuter.addColorStop(1, 'rgba(255, 100, 0, 0)');
+
+            ctx.fillStyle = gradOuter;
+            ctx.beginPath();
+            ctx.moveTo(p.x - flameW, p.y);
+            ctx.quadraticCurveTo(p.x - flameW * 1.3, p.y + flameLen * 0.5, p.x, p.y + flameLen);
+            ctx.quadraticCurveTo(p.x + flameW * 1.3, p.y + flameLen * 0.5, p.x + flameW, p.y);
+            ctx.closePath();
+            ctx.fill();
+
+            // Core electric white spear
+            const gradCore = ctx.createLinearGradient(p.x, p.y, p.x, p.y + flameLen * 0.6);
+            gradCore.addColorStop(0, '#ffffff');
+            gradCore.addColorStop(0.6, flameColor1);
+            gradCore.addColorStop(1, 'rgba(255, 255, 255, 0)');
+
+            ctx.fillStyle = gradCore;
+            ctx.beginPath();
+            ctx.moveTo(p.x - flameW * 0.5, p.y);
+            ctx.lineTo(p.x, p.y + flameLen * 0.65);
+            ctx.lineTo(p.x + flameW * 0.5, p.y);
+            ctx.closePath();
+            ctx.fill();
+        });
+
+        ctx.restore();
     }
 }
 

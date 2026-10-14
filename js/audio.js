@@ -181,17 +181,18 @@ class SoundEngine {
         if (!this.initialized || !this.engineRunning) return;
         const now = this.ctx.currentTime;
 
-        // Base frequency 40Hz at idle, up to 180Hz at top speed
-        const targetPitch = 40 + (speedRatio * 130) + (isBoosting ? 35 : 0);
-        const filterCutoff = 180 + (speedRatio * 900) + (isBoosting ? 600 : 0);
+        // Base frequency 40Hz at idle, up to 180Hz at top speed, screaming 260Hz+ with Nitro!
+        const targetPitch = 40 + (speedRatio * 130) + (isBoosting ? 95 : 0);
+        const filterCutoff = 180 + (speedRatio * 900) + (isBoosting ? 2200 : 0);
 
-        this.engineOsc1.frequency.setTargetAtTime(targetPitch, now, 0.08);
-        this.engineOsc2.frequency.setTargetAtTime(targetPitch * 1.5, now, 0.08);
-        this.engineFilter.frequency.setTargetAtTime(filterCutoff, now, 0.1);
+        this.engineOsc1.frequency.setTargetAtTime(targetPitch, now, 0.06);
+        this.engineOsc2.frequency.setTargetAtTime(targetPitch * 1.5, now, 0.06);
+        this.engineFilter.frequency.setTargetAtTime(filterCutoff, now, 0.08);
 
-        const volume = 0.08 + (speedRatio * 0.18) + (isBoosting ? 0.08 : 0);
-        this.engineGain.gain.setTargetAtTime(volume, now, 0.08);
-        this.engineNoiseGain.gain.setTargetAtTime(volume * 0.5, now, 0.08);
+        const volume = 0.08 + (speedRatio * 0.18) + (isBoosting ? 0.16 : 0);
+        this.engineGain.gain.setTargetAtTime(volume, now, 0.06);
+        // Roaring high-pressure jet afterburner noise during nitro boost
+        this.engineNoiseGain.gain.setTargetAtTime((volume * 0.5) + (isBoosting ? 0.22 : 0), now, 0.06);
     }
 
     stopEngine() {
@@ -235,42 +236,43 @@ class SoundEngine {
 
     playNitro() {
         if (!this.initialized || this.muted) return;
+        this.ensureContext();
         const now = this.ctx.currentTime;
 
-        // Sub bass explosion + rising futuristic whoosh
+        // Sub bass shockwave explosion
         const subOsc = this.ctx.createOscillator();
         const subGain = this.ctx.createGain();
         subOsc.type = 'sine';
-        subOsc.frequency.setValueAtTime(140, now);
-        subOsc.frequency.exponentialRampToValueAtTime(45, now + 0.6);
+        subOsc.frequency.setValueAtTime(160, now);
+        subOsc.frequency.exponentialRampToValueAtTime(38, now + 0.7);
 
-        subGain.gain.setValueAtTime(0.35, now);
-        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
+        subGain.gain.setValueAtTime(0.48, now);
+        subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.7);
 
         subOsc.connect(subGain);
         subGain.connect(this.sfxGain);
         subOsc.start(now);
-        subOsc.stop(now + 0.6);
+        subOsc.stop(now + 0.7);
 
-        // High whoosh noise
-        const bufferSize = this.ctx.sampleRate * 0.5;
+        // Supersonic jet flame blast whoosh
+        const bufferSize = this.ctx.sampleRate * 0.6;
         const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
         const data = buffer.getChannelData(0);
         for (let i = 0; i < bufferSize; i++) {
-            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.2));
+            data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (this.ctx.sampleRate * 0.25));
         }
         const noise = this.ctx.createBufferSource();
         noise.buffer = buffer;
 
         const filter = this.ctx.createBiquadFilter();
         filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(400, now);
-        filter.frequency.exponentialRampToValueAtTime(2400, now + 0.4);
-        filter.Q.setValueAtTime(4.0, now);
+        filter.frequency.setValueAtTime(500, now);
+        filter.frequency.exponentialRampToValueAtTime(3200, now + 0.35);
+        filter.Q.setValueAtTime(3.5, now);
 
         const noiseGain = this.ctx.createGain();
-        noiseGain.gain.setValueAtTime(0.25, now);
-        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        noiseGain.gain.setValueAtTime(0.38, now);
+        noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.6);
 
         noise.connect(filter);
         filter.connect(noiseGain);
