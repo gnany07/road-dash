@@ -138,6 +138,7 @@ class Game {
         const touchRight = document.getElementById('touch-right');
         const touchNitro = document.getElementById('touch-nitro');
         const touchBrake = document.getElementById('touch-brake');
+        const touchGas = document.getElementById('touch-gas');
 
         const bindTouch = (el, prop) => {
             if (!el) return;
@@ -153,6 +154,7 @@ class Game {
         bindTouch(touchRight, 'right');
         bindTouch(touchNitro, 'nitro');
         bindTouch(touchBrake, 'down');
+        bindTouch(touchGas, 'up');
     }
 
     initMenuButtons() {
@@ -445,10 +447,15 @@ class Game {
             }
         }
 
-        // Auto-accelerate for mobile / arcade feel if Up key is not held
+        // Controllable throttle logic:
+        // - Holding Up/W/Gas provides full acceleration
+        // - Holding Down/S applies strong braking
+        // - Releasing all inputs smoothly cruises at ~80 km/h for easy maneuvering
         const effectiveInput = Object.assign({}, this.input);
-        if (!effectiveInput.down) {
-            effectiveInput.up = true;
+        if (!effectiveInput.down && !effectiveInput.up && !effectiveInput.nitro) {
+            if (this.player.speed < 3600) {
+                effectiveInput.up = true;
+            }
         }
 
         // Update player

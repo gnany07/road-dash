@@ -21,13 +21,13 @@ const LEVELS_CONFIG = [
             { id: "coins", text: "Collect 35 Gold Coins", check: (p, g) => p.coins >= 35 }
         ],
         sections: [
-            { length: 40, curve: 0, hill: 0 },
-            { length: 60, curve: 2, hill: 15 },
-            { length: 50, curve: -2, hill: 0 },
-            { length: 70, curve: 3, hill: -15 },
-            { length: 60, curve: 0, hill: 25 },
-            { length: 60, curve: -3, hill: 0 },
-            { length: 50, curve: 0, hill: 0 }
+            { length: 45, curve: 0, hill: 0 },
+            { length: 60, curve: 1.0, hill: 8 },
+            { length: 50, curve: -1.0, hill: 0 },
+            { length: 65, curve: 1.2, hill: -8 },
+            { length: 55, curve: 0, hill: 12 },
+            { length: 60, curve: -1.2, hill: 0 },
+            { length: 45, curve: 0, hill: 0 }
         ]
     },
     {
@@ -37,7 +37,7 @@ const LEVELS_CONFIG = [
         theme: "neon",
         weather: "clear",
         timeLimit: 75,
-        trafficDensity: 26,
+        trafficDensity: 22,
         hasHazards: true,
         cashReward: 500,
         description: "Blaze through towering neon skyscrapers at midnight. Traffic is denser and cars change lanes fast. Watch out for oil slicks!",
@@ -48,12 +48,12 @@ const LEVELS_CONFIG = [
         ],
         sections: [
             { length: 50, curve: 0, hill: 0 },
-            { length: 60, curve: 4, hill: 0 },
-            { length: 60, curve: -4, hill: 0 },
-            { length: 80, curve: 0, hill: 30 },
-            { length: 70, curve: 3, hill: -20 },
-            { length: 70, curve: -3, hill: 10 },
-            { length: 60, curve: 0, hill: 0 }
+            { length: 60, curve: 1.4, hill: 0 },
+            { length: 60, curve: -1.4, hill: 0 },
+            { length: 70, curve: 0, hill: 15 },
+            { length: 65, curve: 1.5, hill: -10 },
+            { length: 65, curve: -1.5, hill: 5 },
+            { length: 50, curve: 0, hill: 0 }
         ]
     },
     {
@@ -63,23 +63,23 @@ const LEVELS_CONFIG = [
         theme: "canyon",
         weather: "dust",
         timeLimit: 85,
-        trafficDensity: 24,
+        trafficDensity: 20,
         hasHazards: true,
         cashReward: 750,
         description: "Wind through narrow desert cliffs and rocky elevations. Falling boulders and heavy freight trucks make every bend a test of skill.",
         objectives: [
             { id: "finish", text: "Conquer the canyon pass", check: (p, g) => g.finished },
             { id: "health", text: "Finish with over 60% Health", check: (p, g) => p.health >= 60 },
-            { id: "near_miss", text: "Perform 10 Near Misses", check: (p, g) => p.totalNearMisses >= 10 }
+            { id: "near_miss", text: "Perform 8 Near Misses", check: (p, g) => p.totalNearMisses >= 8 }
         ],
         sections: [
             { length: 45, curve: 0, hill: 0 },
-            { length: 70, curve: 5, hill: 35 },
-            { length: 65, curve: -5, hill: -35 },
-            { length: 80, curve: 4, hill: 20 },
-            { length: 70, curve: -4, hill: -20 },
-            { length: 75, curve: 6, hill: 15 },
-            { length: 55, curve: 0, hill: 0 }
+            { length: 65, curve: 1.8, hill: 18 },
+            { length: 60, curve: -1.8, hill: -18 },
+            { length: 70, curve: 1.6, hill: 10 },
+            { length: 65, curve: -1.6, hill: -10 },
+            { length: 70, curve: 2.0, hill: 8 },
+            { length: 50, curve: 0, hill: 0 }
         ]
     },
     {
@@ -89,7 +89,7 @@ const LEVELS_CONFIG = [
         theme: "storm",
         weather: "rain",
         timeLimit: 95,
-        trafficDensity: 28,
+        trafficDensity: 24,
         hasHazards: true,
         cashReward: 1000,
         description: "Lightning illuminates the dark alpine heights as torrential rain slicks the road. Dodge ice patches and slipstream behind traffic to survive.",
@@ -100,12 +100,12 @@ const LEVELS_CONFIG = [
         ],
         sections: [
             { length: 50, curve: 0, hill: 0 },
-            { length: 80, curve: 3, hill: 40 },
-            { length: 70, curve: -3, hill: 30 },
-            { length: 80, curve: 5, hill: -45 },
-            { length: 90, curve: -5, hill: 20 },
-            { length: 70, curve: 4, hill: -25 },
-            { length: 60, curve: 0, hill: 0 }
+            { length: 70, curve: 1.5, hill: 20 },
+            { length: 65, curve: -1.5, hill: 15 },
+            { length: 70, curve: 1.8, hill: -20 },
+            { length: 75, curve: -1.8, hill: 10 },
+            { length: 65, curve: 1.6, hill: -12 },
+            { length: 50, curve: 0, hill: 0 }
         ]
     },
     {
@@ -115,7 +115,7 @@ const LEVELS_CONFIG = [
         theme: "chase",
         weather: "clear",
         timeLimit: 110,
-        trafficDensity: 32,
+        trafficDensity: 26,
         hasHazards: true,
         cashReward: 2000,
         description: "The city has called in highway police interceptors to bring you down. Use Nitro and Overdrive to bash through pursuit cruisers and make the border!",
@@ -125,14 +125,14 @@ const LEVELS_CONFIG = [
             { id: "collisions", text: "Finish with 3 or fewer collisions", check: (p, g) => p.collisions <= 3 }
         ],
         sections: [
-            { length: 60, curve: 0, hill: 0 },
-            { length: 80, curve: 4, hill: 20 },
-            { length: 80, curve: -4, hill: -20 },
-            { length: 100, curve: 3, hill: 30 },
-            { length: 90, curve: -3, hill: -30 },
-            { length: 90, curve: 5, hill: 15 },
-            { length: 80, curve: -5, hill: -15 },
-            { length: 60, curve: 0, hill: 0 }
+            { length: 50, curve: 0, hill: 0 },
+            { length: 70, curve: 1.6, hill: 12 },
+            { length: 70, curve: -1.6, hill: -12 },
+            { length: 80, curve: 1.8, hill: 15 },
+            { length: 75, curve: -1.8, hill: -15 },
+            { length: 75, curve: 2.0, hill: 8 },
+            { length: 70, curve: -2.0, hill: -8 },
+            { length: 50, curve: 0, hill: 0 }
         ]
     }
 ];

@@ -7,9 +7,9 @@ const ROAD_CONSTANTS = {
     SEGMENT_LENGTH: 200,
     RUMBLE_LENGTH: 3,
     LANES: 4,
-    ROAD_WIDTH: 2200,
-    CAMERA_HEIGHT: 1100,
-    DRAW_DISTANCE: 260,
+    ROAD_WIDTH: 2000,
+    CAMERA_HEIGHT: 1000,
+    DRAW_DISTANCE: 160,
     CAMERA_DEPTH: 0.84,
     FIELD_OF_VIEW: 100
 };
@@ -42,10 +42,10 @@ class RoadEngine {
 
         const sections = levelConfig.sections || [
             { length: 50, curve: 0, hill: 0 },
-            { length: 80, curve: 2, hill: 20 },
-            { length: 60, curve: -3, hill: -20 },
-            { length: 90, curve: 0, hill: 40 },
-            { length: 70, curve: 4, hill: 0 },
+            { length: 70, curve: 1.5, hill: 12 },
+            { length: 60, curve: -1.5, hill: -12 },
+            { length: 80, curve: 0, hill: 20 },
+            { length: 70, curve: 2.0, hill: 0 },
             { length: 50, curve: 0, hill: 0 }
         ];
 
@@ -61,9 +61,9 @@ class RoadEngine {
 
             for (let i = 0; i < len; i++) {
                 const percent = i / len;
-                // Smooth ease in/out for curves and hills
-                const easeCurve = curve * Math.sin(percent * Math.PI);
-                const yDelta = targetHill * Math.sin(percent * Math.PI) * 4;
+                // Smooth ease in/out for gentle realistic highway curves
+                const easeCurve = (curve * 0.35) * Math.sin(percent * Math.PI);
+                const yDelta = (targetHill * 1.6) * Math.sin(percent * Math.PI);
                 currentY += yDelta;
 
                 const segIdx = this.segments.length;

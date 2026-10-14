@@ -444,6 +444,16 @@ html, body {
     color: #ffffff;
 }
 
+.gas-touch {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 16px rgba(16, 185, 129, 0.4);
+}
+
+.gas-touch:active {
+    background: var(--neon-green);
+    color: #000000;
+}
+
 /* -------------------------------------------------------------
    MODAL SCREENS & GLASSMORPHISM CONTAINERS
    ------------------------------------------------------------- */

@@ -253,30 +253,31 @@ class TrafficManager {
         const totalSegments = roadEngine.segments.length;
         if (totalSegments === 0) return;
 
-        const count = levelConfig.trafficDensity || 24;
-        const spacing = (roadEngine.trackLength - 2000) / count;
+        const count = levelConfig.trafficDensity || 20;
+        const spacing = (roadEngine.trackLength - 5000) / count;
 
         for (let i = 0; i < count; i++) {
-            const z = 2000 + i * spacing + (Math.random() * 400 - 200);
+            // First cars appear at 3500+ so start of race is clean
+            const z = 3500 + i * spacing + (Math.random() * 300 - 150);
             const lanes = [-0.6, -0.2, 0.2, 0.6];
             const lane = lanes[Math.floor(Math.random() * lanes.length)];
 
             // Vehicle type selection based on level
             let type = 'sedan';
             const r = Math.random();
-            if (levelConfig.theme === 'chase' && r < 0.3) {
+            if (levelConfig.theme === 'chase' && r < 0.25) {
                 type = 'police';
-            } else if (r < 0.22) {
+            } else if (r < 0.2) {
                 type = 'semi_truck';
-            } else if (r < 0.38) {
+            } else if (r < 0.35) {
                 type = 'sports_car';
-            } else if (r < 0.44) {
+            } else if (r < 0.42) {
                 type = 'ambulance';
             }
 
             const speed = (type === 'semi_truck')
-                ? 3200 + Math.random() * 800
-                : (type === 'sports_car' ? 6800 + Math.random() * 1500 : 4500 + Math.random() * 1200);
+                ? 3000 + Math.random() * 600
+                : (type === 'sports_car' ? 6200 + Math.random() * 1200 : 4200 + Math.random() * 1000);
 
             const color = (type === 'police') ? '#0f172a' : this.trafficColors[Math.floor(Math.random() * this.trafficColors.length)];
 
@@ -315,13 +316,15 @@ class TrafficManager {
                 segment.cars.push(car);
             }
 
+            // Relative positioning
+            const distZ = car.z - player.position;
+            const latDist = Math.abs(player.x - car.x);
+            const collisionWidth = (car.type === 'semi_truck') ? 0.20 : 0.17;
+
             // -------------------------------------------------------------
             // DRAFTING / SLIPSTREAM MECHANIC
             // -------------------------------------------------------------
-            const distZ = car.z - player.position;
-            const latDist = Math.abs(player.x - car.x);
-
-            if (!car.isWrecked && distZ > 80 && distZ < 650 && latDist < 0.24 && player.speed > 5000) {
+            if (!car.isWrecked && distZ > 80 && distZ < 650 && latDist < 0.22 && player.speed > 5000) {
                 draftingThisFrame = true;
                 player.draftTimer += dt;
                 player.totalDraftTime += dt;
@@ -336,37 +339,35 @@ class TrafficManager {
             // NEAR-MISS (CLOSE CALL) DETECTION
             // -------------------------------------------------------------
             if (!car.hasPassedPlayer && !car.isWrecked) {
-                // If player is overtaking this car
-                if (player.position > car.z && (player.position - car.z) < 350) {
+                // When player overtakes traffic car
+                if (player.position > car.z && (player.position - car.z) < 280) {
                     car.hasPassedPlayer = true;
-                    // If lateral distance was thrillingly close (0.28 to 0.48)
-                    if (latDist > 0.28 && latDist < 0.52) {
+                    // Player successfully slipped past in the adjacent lane
+                    if (latDist >= collisionWidth && latDist <= 0.36) {
                         player.triggerNearMiss(particleSystem);
                     }
                 }
             }
 
             // -------------------------------------------------------------
-            // COLLISION DETECTION
+            // COLLISION DETECTION (Precise single-lane physical box)
             // -------------------------------------------------------------
-            if (!car.isWrecked && Math.abs(distZ) < (car.length * 0.6)) {
-                if (latDist < (car.width + 0.16)) {
-                    if (player.overdriveActive) {
-                        // SMASH TRAFFIC IN OVERDRIVE!
-                        car.wreck(Math.sign(car.x - player.x) || 1);
-                        player.score += 1000;
-                        if (particleSystem) {
-                            particleSystem.emitCrashSparks(player);
-                        }
-                    } else if (player.invulnerableTimer <= 0) {
-                        // Standard collision damage
-                        const hitDir = Math.sign(player.x - car.x);
-                        player.x += hitDir * 0.2;
-                        player.speed *= 0.5;
-                        player.damage(25, particleSystem);
-                        car.wreck(Math.sign(car.x - player.x) || 1);
-                        window.soundEngine.playCrash();
+            const inZCollision = (distZ > -100 && distZ < (car.length * 0.45));
+            if (!car.isWrecked && inZCollision && latDist < collisionWidth) {
+                if (player.overdriveActive) {
+                    // SMASH TRAFFIC IN OVERDRIVE!
+                    car.wreck(Math.sign(car.x - player.x) || 1);
+                    player.score += 1000;
+                    if (particleSystem) {
+                        particleSystem.emitCrashSparks(player);
                     }
+                } else if (player.invulnerableTimer <= 0) {
+                    // Clean, recoverable collision
+                    player.speed = Math.max(player.speed * 0.72, 2800);
+                    player.damage(18, particleSystem);
+                    car.wreck(Math.sign(car.x - player.x) || 1);
+                    player.invulnerableTimer = 1.5;
+                    window.soundEngine.playCrash();
                 }
             }
         }

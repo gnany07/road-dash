@@ -129,10 +129,10 @@ class Player {
             }
         }
 
-        // Off-road penalty
-        const isOffroad = Math.abs(this.x) > this.offRoadLimit;
-        if (isOffroad && this.speed > this.maxSpeed * 0.3) {
-            targetAccel += this.offRoadDecel;
+        // Off-road penalty (gentle slowdown, easy recovery)
+        const isOffroad = Math.abs(this.x) > 1.0;
+        if (isOffroad && this.speed > this.maxSpeed * 0.65) {
+            targetAccel += this.offRoadDecel * 0.4;
             if (particleSystem && Math.random() < 0.4) {
                 particleSystem.emitOffroadDust(this);
             }
@@ -150,37 +150,48 @@ class Player {
         // 2. Lateral Steering & Banking
         const speedRatio = this.speed / this.maxSpeed;
         const currentSegment = roadEngine.findSegment(this.position);
-        const curveForce = currentSegment ? currentSegment.curve : 0;
 
         let steerIntent = 0;
         if (input.left) steerIntent -= 1;
         if (input.right) steerIntent += 1;
 
         // Smooth steering angle for 3D chassis tilt
-        this.steerAngle += (steerIntent - this.steerAngle) * Math.min(1, dt * 10);
+        this.steerAngle += (steerIntent - this.steerAngle) * Math.min(1, dt * 12);
 
         // Tire screech when turning hard at high speed
-        if (Math.abs(steerIntent) > 0.5 && speedRatio > 0.7 && Math.random() < 0.12) {
-            window.soundEngine.playTireScreech(0.6);
+        if (Math.abs(steerIntent) > 0.5 && speedRatio > 0.7 && Math.random() < 0.08) {
+            window.soundEngine.playTireScreech(0.5);
             if (particleSystem) {
                 particleSystem.emitTireSmoke(this);
             }
         }
 
-        // Lateral position change
-        const turnSpeed = this.handling * (0.4 + speedRatio * 0.6);
+        // Lateral position change (responsive, snappy arcade feel)
+        let turnSpeed = this.handling * (0.9 + speedRatio * 0.4);
+        // Extra assist when steering back towards the road from off-road
+        if (isOffroad && Math.sign(steerIntent) !== 0 && Math.sign(steerIntent) !== Math.sign(this.x)) {
+            turnSpeed *= 1.4;
+        }
         this.x += steerIntent * turnSpeed * dt;
 
-        // Centrifugal curve push
-        this.x -= (curveForce * speedRatio * speedRatio * 1.8 * dt);
+        // Subtle realistic centrifugal curve drift (gentle, easy to counter)
+        if (currentSegment && speedRatio > 0.15) {
+            this.x -= (currentSegment.curve * speedRatio * 0.22 * dt);
+        }
 
-        // Bounds clamp (can't drive to infinity offroad)
-        this.x = Math.max(-1.95, Math.min(1.95, this.x));
+        // Bounds clamp (safe shoulder)
+        this.x = Math.max(-1.5, Math.min(1.5, this.x));
 
-        // 3. Forward position integration
+        // 3. Track Elevation & Forward position integration
         this.position += this.speed * dt;
         if (this.position >= roadEngine.trackLength) {
-            // Reached or looped
+            // Reached finish or looping
+        }
+
+        // Track road elevation so camera stays aligned with hills
+        if (currentSegment) {
+            const segPercent = (this.position % window.ROAD_CONSTANTS.SEGMENT_LENGTH) / window.ROAD_CONSTANTS.SEGMENT_LENGTH;
+            this.y = currentSegment.p1.world.y + (currentSegment.p2.world.y - currentSegment.p1.world.y) * segPercent;
         }
 
         // Road bump vertical vibration
